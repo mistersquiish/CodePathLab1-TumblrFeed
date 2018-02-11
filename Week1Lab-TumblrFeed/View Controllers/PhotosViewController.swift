@@ -18,6 +18,13 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
         // delegate table view
         TableView.delegate = self
         TableView.dataSource = self
+        
+        
+        // Initialize a UIRefreshControl
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: #selector(refreshControlAction(_:)), for: UIControlEvents.valueChanged)
+        // add refresh control to table view
+        TableView.insertSubview(refreshControl, at: 0)
 
         // Network request snippet
         let url = URL(string: "https://api.tumblr.com/v2/blog/humansofnewyork.tumblr.com/posts/photo?api_key=Q6vHoaVm5L1u2ZAW1fqv3Jw48gFzYVg9P0vH0VHl3GVy6quoGV")!
@@ -47,11 +54,12 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
         // Dispose of any resources that can be recreated.
     }
     
-    // table view protocol methods
+    // table view protocol method
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return posts.count
     }
     
+    // table view protocol method
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "PhotoCell", for: indexPath) as! PhotoCell
         let post = posts[indexPath.row]
@@ -74,7 +82,40 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
         
         return cell
     }
-
+    
+    // Makes a network request to get updated data
+    // Updates the tableView with the new data
+    // Hides the RefreshControl
+    @objc func refreshControlAction(_ refreshControl: UIRefreshControl) {
+        
+        // Network Request
+        let myRequest = URL(string: "https://api.tumblr.com/v2/blog/humansofnewyork.tumblr.com/posts/photo?api_key=Q6vHoaVm5L1u2ZAW1fqv3Jw48gFzYVg9P0vH0VHl3GVy6quoGV")!
+        
+        // Configure session so that completion handler is executed on main UI thread
+        let session = URLSession(configuration: .default, delegate: nil, delegateQueue: OperationQueue.main)
+        let task: URLSessionDataTask = session.dataTask(with: myRequest) { (data: Data?, response: URLResponse?, error: Error?) in
+            
+            // Use the new data to update the data source
+            if let error = error {
+                print(error.localizedDescription)
+            } else if let data = data,
+                let dataDictionary = try! JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                
+                    // Get the dictionary from the response key
+                    let responseDictionary = dataDictionary["response"] as! [String: Any]
+                    // Store the returned array of dictionaries in our posts property
+                    self.posts = responseDictionary["posts"] as! [[String: Any]]
+                
+                    // Reload the tableView now that there is new data
+                    self.TableView.reloadData()
+            
+                    // Tell the refreshControl to stop spinning
+                    refreshControl.endRefreshing()
+                }
+        
+            }
+            task.resume()
+    }
     /*
     // MARK: - Navigation
 
@@ -84,5 +125,4 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
         // Pass the selected object to the new view controller.
     }
     */
-
 }
