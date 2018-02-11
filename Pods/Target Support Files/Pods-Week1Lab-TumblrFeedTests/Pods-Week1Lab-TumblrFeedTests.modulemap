@@ -1,0 +1,6 @@
+framework module Pods_Week1Lab_TumblrFeedTests {
+  umbrella header "Pods-Week1Lab-TumblrFeedTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
