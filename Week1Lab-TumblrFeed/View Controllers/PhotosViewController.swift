@@ -54,6 +54,25 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
         // Dispose of any resources that can be recreated.
     }
     
+    // prepare for segue
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        let destinationViewController = segue.destination as! PhotosDetailViewController
+        let cell = sender as! UITableViewCell
+        let indexPath = TableView.indexPath(for: cell)!
+        let post = self.posts[indexPath.row]
+        if let photos = post["photos"] as? [[String: Any]] {
+            // url location of the image. use AlamofireImage helper method to fetch image once we get url
+            let photo = photos[0]
+            // get first photo in photos array
+            let originalSize = photo["original_size"] as! [String: Any]
+            // get original size dictionary from photo
+            let urlString = originalSize["url"] as! String
+            // create a URL using the urlString
+            let url = URL(string: urlString)
+            destinationViewController.url = url
+        }
+    }
+    
     // table view protocol method
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return posts.count
