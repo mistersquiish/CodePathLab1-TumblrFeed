@@ -8,35 +8,39 @@
 
 import UIKit
 
-class PhotosDetailViewController: UIViewController {
+class PhotosDetailViewController: UIViewController, UIScrollViewDelegate {
 
     @IBOutlet weak var photoLabel: UIImageView!
+    
+    @IBAction func didPinchTray(_ sender: Any) {
+        performSegue(withIdentifier: "modalSegue", sender: nil)
+    }
     
     var url: URL?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if let urlSafe = url {
-            photoLabel.af_setImage(withURL: urlSafe)
-        }
-
+        photoLabel.af_setImage(withURL: url!)
         
+        let pinchGestureRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(didPinch(sender:)))
+
+        // Attach it to a view of your choice. If it's a UIImageView, remember to enable user interaction
+        photoLabel.isUserInteractionEnabled = true
+        photoLabel.addGestureRecognizer(pinchGestureRecognizer)
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    }
+
+    @objc func didPinch(sender: UIPinchGestureRecognizer) {
+        // get the scale value from the pinch gesture recognizer
+        let scale = sender.scale
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
+    // prepare for segue
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+        let destinationViewController = segue.destination as! FullScreenPhotosViewController
+        destinationViewController.url = url
     }
-    */
-
 }
